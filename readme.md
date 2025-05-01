@@ -26,20 +26,27 @@ A professional web application that extracts, processes, and summarizes YouTube 
 - Python 3.8+
 - pip package manager
 
-### Installation
+## Installation
+
+### Clone repository
+
 ```bash
-# Clone repository
 git clone https://github.com/yourusername/ai-video-summarizer.git
+```
+```bash
 cd ai-video-summarizer
+```
 
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-
-# Install dependencies
+### Install dependencies
+```bash
 pip install -r requirements.txt
+```
 
-# Set up configuration
-mkdir -p .streamlit
-echo "WORD_LIMIT = 3000" > .streamlit/secrets.toml
+### Run the project
+
+```bash
+streamlit run app.py
+```
+
+
+
