@@ -147,7 +147,13 @@ def main():
                 
             st.subheader("Processed Transcript")
             with st.expander("View Cleaned Text"):
-                st.write(cleaned_text[:2000] + "...")
+                # Scrollable text container
+                st.markdown(
+                    f'<div style="height: 300px; overflow-y: auto;">'
+                    f'{cleaned_text}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
             
             st.subheader("AI Summary")
             st.markdown(mock_summary())
