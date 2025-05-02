@@ -1,5 +1,5 @@
 import torch
-import asyncio
+import time
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from huggingface_hub import login
 import streamlit as st
@@ -36,36 +36,30 @@ Given Below is the Question which means the transcript of the lecture. Generate 
 ### Response:
 """
 
-async def generate_notes(transcript: str) -> str:
-    """Async wrapper for model inference"""
+def generate_notes(transcript: str) -> tuple[str, float]:
+    """Synchronous generation with timing"""
+    start_time = time.time()
     tokenizer, model = load_model()
     
-    # Ensure single line input
     processed_text = transcript.replace("\n", " ")
-    
-    # Format prompt
     prompt = prompt_template.format(processed_text, "")
     
-    # Run inference in thread pool
-    def _run_inference():
+    try:
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         with torch.no_grad():
             output = model.generate(
                 **inputs,
-                max_new_tokens=2000,
+                max_new_tokens=4000,
                 temperature=0.7,
                 top_p=0.9,
                 do_sample=True,
                 pad_token_id=tokenizer.eos_token_id,
             )
-        return tokenizer.decode(output[0], skip_special_tokens=True)
-    
-    try:
-        decoded_output = await asyncio.to_thread(_run_inference)
+        decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
         final_output= decoded_output.split("### Response:")[-1].strip()
         print("Decoded Output:" , decoded_output)
         # print(final_output)
-        return final_output
+        return final_output, time.time() - start_time
     except Exception as e:
         st.error(f"Model error: {str(e)}")
-        return ""
+        return "", 0.0
