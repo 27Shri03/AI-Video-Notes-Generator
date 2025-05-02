@@ -1,8 +1,10 @@
 import streamlit as st
 import re
 import time
+import asyncio
 from youtube_transcript_api import YouTubeTranscriptApi
 from urllib.parse import urlparse, parse_qs
+from model.model_handler import generate_notes  
 from config import WORD_LIMIT
 
 def extract_video_id(url: str) -> str:
@@ -49,22 +51,8 @@ def check_word_limit(text: str) -> tuple[int, int]:
     word_count = len(text.split())
     return word_count, max(0, word_count - WORD_LIMIT)
 
-def mock_summary() -> str:
-    return """
-## 📚 AI-Generated Summary
 
-**Main Topic:** Neural Networks in Modern AI
-
-**Key Concepts:**
-- Backpropagation fundamentals
-- Activation functions comparison
-- Batch normalization techniques
-- Overfitting prevention strategies
-
-**Conclusion:** Proper network architecture design is crucial for model performance.
-"""
-
-def main():
+async def main():
     st.set_page_config(
         page_title="AI Video Summarizer",
         page_icon="🧠",
@@ -154,14 +142,31 @@ def main():
                     f'</div>',
                     unsafe_allow_html=True
                 )
+            with st.status("🧠 Generating AI Summary...", expanded=True) as gen_status:
+                st.write("⚙️ Loading model...")
+                notes = await generate_notes(cleaned_text)  # Make main async
+                
+                if not notes:
+                    st.error("Failed to generate summary")
+                    return
+                
+                gen_status.update(
+                    label="Summary Generated!",
+                    state="complete",
+                    expanded=False
+                )
+            
+            st.session_state['summary_notes'] = notes
             
             st.subheader("AI Summary")
-            st.markdown(mock_summary())
+            st.markdown(st.session_state['summary_notes'])
             
+            # Download button that uses session state
             st.download_button(
                 label="📥 Download Summary",
-                data=mock_summary(),
-                file_name="video_summary.md"
+                data=st.session_state['summary_notes'],
+                file_name="video_summary.md",
+                key="download_summary"  # Unique key
             )
             
         except RuntimeError as e:
@@ -173,4 +178,4 @@ def main():
     st.caption("Made with ❤️ using Streamlit | Powered by yt-dlp")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
