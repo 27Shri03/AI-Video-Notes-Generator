@@ -52,6 +52,7 @@ def generate_notes(transcript: str) -> tuple[str, float]:
                 max_new_tokens=4000,
                 temperature=0.7,
                 top_p=0.9,
+                use_cache=False,
                 do_sample=True,
                 pad_token_id=tokenizer.eos_token_id,
             )
