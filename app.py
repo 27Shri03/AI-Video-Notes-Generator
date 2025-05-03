@@ -71,17 +71,38 @@ def main():
             
         try:
             with st.status("🔄 Processing Pipeline", expanded=True) as status:
-                # Processing steps
                 st.write("🔍 Extracting Transcript...")
-                raw_text = get_full_transcript(url)
+                 
+                with st.spinner("Downloading subtitles..."):
+                    raw_text = get_full_transcript(url)
+                 
+                st.write(f"✅ Retrieved {len(raw_text)} characters")
+                 
+                st.write("🧹 Cleaning Text...")
                 cleaned_text = preprocess_transcript(raw_text)
+                st.write(f"📝 Final text length: {len(cleaned_text)} characters")
+                 
+                st.write("⚖️ Checking Word Limit...")
                 word_count, excess = check_word_limit(cleaned_text)
-                
+                st.write(f"ℹ️ Total words: {word_count}/{word_limit}")
                 if word_count > word_limit:
                     st.error(f"⚠️ Exceeds limit by {excess} words")
                     return
                 
-                status.update(label="Processing Complete!", state="complete", expanded=False)
+                status.update(
+                    label="Processing Complete!",
+                    state="complete",
+                    expanded=False
+                )
+            st.subheader("Processed Transcript")
+            with st.expander("View Cleaned Text"):
+                st.markdown(
+                    f'<div style="height: 300px; overflow-y: auto;">'
+                    f'{cleaned_text}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+            
 
             with st.status("🧠 Generating AI Summary...", expanded=True) as gen_status:
                 # Generation setup
